@@ -1,0 +1,7 @@
+change:
+  - Moved the deletion of the CUE singleton from the cleanup script into the integration test so
+    it can be properly tested.
+fix:
+  - Modifies parts of the system where deleting a school singleton was failing because it was forced to be
+    published. If a singleton exists, they MUST be published. However, if they are to be destroyed, they
+    should also be expired.
