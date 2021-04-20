@@ -43,3 +43,19 @@ so like then you'd have maybe something like
 	/3.3.0.md
 	etc.
 ```
+
+## IN PARTICULAR
+
+The proposition of previous things was that a changelog should come from
+the git commits.
+
+This does not make sense
+
+- git commits are harder to review and edit in most UIs
+- git commits are written to developers attempting to find details about changes
+- changelogs are versioning notes, staged pre-release, meant for human consumption
+
+Keeping notes in git commits is gate-keeping: you can't contribute (even with
+simple things like documentation updates) unless you can git-rebase-interactive
+
+using this, you can review peer reviews, suggest wording changes, etc, then squash

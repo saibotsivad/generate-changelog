@@ -1,7 +1,7 @@
 {
-  "name": "generate-changelog",
+  "name": "@saibotsivad/generate-changelog",
   "version": "0.0.0",
-  "description": "",
+  "description": "Automate building human-readable changelogs, with no merge conflicts.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
