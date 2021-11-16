@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/saibotsivad/generate-changelog/issues"
   },
-  "homepage": "https://github.com/saibotsivad/generate-changelog#readme"
+  "homepage": "https://github.com/saibotsivad/generate-changelog#readme",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "sade": "^1.7.4",
+    "semver": "^7.3.5",
+    "word-wrapper": "^1.0.7"
+  }
 }

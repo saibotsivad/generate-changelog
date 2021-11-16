@@ -6,13 +6,25 @@ const semver = require('semver')
 const yaml = require('js-yaml')
 const wrap = require('word-wrapper')
 
+
+const { validateFiles } = require('./generator.js')
+
+
 const getChangelogYamlFiles = folder => readdirSync(folder)
 	.map(filename => ({
 		filename,
-		data: yaml.safeLoad(readFileSync(join(folder, filename), 'utf8'))
+		data: yaml.load(readFileSync(join(folder, filename), 'utf8'))
 	}))
 
-const allowedTypes = [ 'add', 'breaking', 'change', 'deprecate', 'fix', 'remove', 'security' ]
+const allowedTypes = [
+	'add',
+	'breaking',
+	'change',
+	'deprecate',
+	'fix',
+	'remove',
+	'security'
+]
 
 const getRelease = map => {
 	if (map.breaking) return 'major'
@@ -29,19 +41,17 @@ const validateYamlFile = ({ filename, data }) => {
 			if (!allowedTypes.includes(key)) {
 				errors.push(`Found unsupported change type "${key}". Supported keys: ${allowedTypes.join(', ')}`)
 			} else if (!Array.isArray(data[key])) {
-				errors.push(`Found non-array entry for "${key}" key. Each change type entry needs an array of string messages.`)
+				errors.push(`Found non-array entry for "${key}" key. Each change type entry must be an array of string messages.`)
 			} else {
 				data[key].forEach((entry, index) => {
 					if (typeof entry !== 'string') {
-						errors.push(`Found non-string array entry at "${key}.${index}".`)
+						errors.push(`Found non-string array entry at "${key}.${index}". All array entries must be strings.`)
 					}
 				})
 			}
 		})
 	}
-	return errors.length
-		? errors.map(line => `[${filename}] ${line}`)
-		: null
+	return errors.map(error => ({ filename, error }))
 }
 
 const validateYamlFiles = files => files.map(validateYamlFile).flat().filter(Boolean)
@@ -49,12 +59,12 @@ const validateYamlFiles = files => files.map(validateYamlFile).flat().filter(Boo
 const loadAndValidate = folder => {
 	const files = getChangelogYamlFiles(folder)
 	if (!files.length) {
-		console.log('No change entries found.')
+		console.log('No change entries found. Pull requests must have a changelog file.')
 		process.exit(1)
 	}
 	const errors = validateYamlFiles(files)
 	if (errors.length) {
-		errors.forEach(error => { console.log(error) })
+		errors.forEach(({ filename, error }) => { console.log(error) })
 		process.exit(1)
 	}
 	return files
@@ -62,18 +72,25 @@ const loadAndValidate = folder => {
 
 const prog = sade('changelog').version(version)
 
-prog.command('validate <folder>')
+prog
+	.command('validate <folder>')
 	.describe('Validate the YAML files in a changelog folder.')
 	.action(async (folder) => {
-		loadAndValidate(folder)
-		console.log('No errors found.')
-		process.exit(0)
+		const errors = validateFiles(getChangelogYamlFiles(folder))
+		if (errors && errors.length) {
+			errors.forEach(({ filename, error }) => { console.log(filename, error) })
+			process.exit(1)
+		} else {
+			console.log('No errors found.')
+			process.exit(0)
+		}
 	})
 
-prog.command('condense <folder> <package>')
-	.option('--lineWidth, -l', 'The line width at which to wrap change entries. [Default: 80]')
-	.option('--date, -d', 'Specify exact date string. [Default: current time in ISO format]')
+prog
+	.command('condense <folder> <package>')
 	.describe('Condense the YAML files in a changelog folder into a single file, auto detecting new version number from package.json file.')
+	.option('--lineWidth, -l', 'The line width at which to wrap change entries. [Default: 80]')
+	.option('--date, -d', 'Specify exact date string, used for the release date. [Default: current time in ISO format]')
 	.action(async (folder, package, opts) => {
 		const files = loadAndValidate(folder)
 		const condensed = files.reduce((map, { data }) => {
