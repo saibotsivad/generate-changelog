@@ -1,0 +1,14 @@
+- type: change
+  scope: http
+  semver: major
+  summary: CUE singleton location change # optional
+  message: |
+    Moved the deletion of the CUE singleton from the cleanup script into the integration test so
+    it can be properly tested.
+- type: fix
+  scope: init
+  semver: patch
+  message: |
+    Modifies parts of the system where deleting a school singleton was failing because it was forced to be
+    published. If a singleton exists, they MUST be published. However, if they are to be destroyed, they
+    should also be expired.
